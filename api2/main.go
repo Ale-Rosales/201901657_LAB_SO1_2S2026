@@ -18,7 +18,7 @@ const (
 
 // Direcciones de las otras APIs. Ajusta las IPs si tus VMs cambian.
 var (
-	api1URL = "http://localhost:8081"      // API1 vive en la misma VM1
+	api1URL = "http://api1:8081"      // API1 vive en la misma VM1
 	api3URL = "http://192.168.122.87:8083" // API3 vive en VM2
 )
 

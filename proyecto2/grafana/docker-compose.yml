@@ -1,0 +1,37 @@
+services:
+  valkey:
+    image: valkey/valkey:latest
+    container_name: valkey-pr2-201901657
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+    networks:
+      - pr2-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-pr2-201901657
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PLUGINS_PREINSTALL=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - pr2-net
+    depends_on:
+      - valkey
+
+networks:
+  pr2-net:
+    name: pr2-net-201901657
+
+volumes:
+  valkey-data:
+    name: pr2so1-valkey-data
+  grafana-data:
+    name: pr2so1-grafana-data

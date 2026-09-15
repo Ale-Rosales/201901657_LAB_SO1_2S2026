@@ -42,7 +42,7 @@ func main() {
 	if err := installCronjob(); err != nil {
 		log.Printf("advertencia: no se pudo instalar el cronjob: %v", err)
 	} else {
-		log.Println("Cronjob instalado (cada 2 minutos).")
+		log.Println("Cronjob instalado (cada 1 minuto).")
 	}
 
 	st := store.New("localhost:6379")
@@ -204,7 +204,7 @@ func moduleLoaded() bool {
 }
 
 func installCronjob() error {
-	linea := fmt.Sprintf("*/2 * * * * %s", cronScriptPath)
+	linea := fmt.Sprintf("* * * * * %s", cronScriptPath)
 	script := fmt.Sprintf(`(crontab -l 2>/dev/null | grep -vF %q; echo %q) | crontab -`,
 		cronScriptPath, linea)
 	cmd := exec.Command("sh", "-c", script)

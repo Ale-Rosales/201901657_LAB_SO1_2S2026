@@ -1,0 +1,1 @@
+# Sonda de Kernel en C y Daemon en Go para la Telemetría de Contenedores

@@ -16,6 +16,8 @@ package store
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 
@@ -117,9 +119,13 @@ func (s *Store) RecordEliminaciones(count int) error {
 // el pico historico de cada contenedor (ZADD GT: solo sube el score,
 // nunca baja), para que el ranking siga incluyendo contenedores ya
 // eliminados, tal como pide el enunciado.
+//
+// El member incluye nombre, ID corto del contenedor y los PIDs del
+// host que le pertenecen (el enunciado pide mostrar el PID y el ID
+// del proceso/contenedor en el Top 5).
 func (s *Store) UpdateRankings(containers []manager.ContainerMetrics) error {
 	for _, cm := range containers {
-		member := fmt.Sprintf("%s|%s", cm.Name, cm.ID)
+		member := fmt.Sprintf("%s|%s|pids:%s", cm.Name, cm.ID, joinPIDs(cm.PIDs))
 
 		err := s.client.ZAddArgs(s.ctx, keyRankingRAM, redis.ZAddArgs{
 			GT:      true,
@@ -138,4 +144,15 @@ func (s *Store) UpdateRankings(containers []manager.ContainerMetrics) error {
 		}
 	}
 	return nil
+}
+
+// joinPIDs concatena los PIDs de un contenedor separados por coma,
+// para incluirlos en el member del sorted set junto al nombre y el ID
+// del contenedor.
+func joinPIDs(pids []int) string {
+	strs := make([]string, len(pids))
+	for i, p := range pids {
+		strs[i] = strconv.Itoa(p)
+	}
+	return strings.Join(strs, ",")
 }

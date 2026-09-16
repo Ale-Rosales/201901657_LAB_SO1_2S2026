@@ -168,13 +168,18 @@ func DecideLaunches(processes []parser.Process, managed []dockerinfo.ManagedCont
 }
 
 // pruneExcess ordena un bucket de contenedores por consumo (RSS
-// primero, %CPU como desempate) de mayor a menor, y va marcando para
-// eliminar los de mayor consumo mientras el conteo se mantenga por
-// encima del minimo requerido.
+// primero, VSZ como segundo desempate, %CPU como tercer desempate) de
+// mayor a menor, cubriendo los tres criterios de ordenamiento que pide
+// el enunciado (RAM/RSS, VSZ y CPU), y va marcando para eliminar los
+// de mayor consumo mientras el conteo se mantenga por encima del
+// minimo requerido.
 func pruneExcess(bucket []*ContainerMetrics, minimo int, etiqueta string) []Decision {
 	sort.Slice(bucket, func(i, j int) bool {
 		if bucket[i].RssKB != bucket[j].RssKB {
 			return bucket[i].RssKB > bucket[j].RssKB
+		}
+		if bucket[i].VszKB != bucket[j].VszKB {
+			return bucket[i].VszKB > bucket[j].VszKB
 		}
 		return bucket[i].PorcCPU > bucket[j].PorcCPU
 	})

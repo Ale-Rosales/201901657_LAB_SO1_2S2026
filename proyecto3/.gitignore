@@ -1,0 +1,9 @@
+target/
+*.exe
+__pycache__/
+.venv/
+*.pem
+*.key
+htpasswd
+.env
+bin/

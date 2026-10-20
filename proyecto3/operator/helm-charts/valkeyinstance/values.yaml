@@ -1,0 +1,14 @@
+image: valkey/valkey:8-alpine
+replicaCount: 1
+maxmemory: 128mb
+maxmemoryPolicy: allkeys-lru
+persistence:
+  enabled: true
+  size: 1Gi
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 192Mi

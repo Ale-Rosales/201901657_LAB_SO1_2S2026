@@ -3,6 +3,7 @@ module munk8s
 go 1.25.0
 
 require (
+	github.com/rabbitmq/amqp091-go v1.16.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 )

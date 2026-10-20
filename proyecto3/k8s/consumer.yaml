@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-consumer
+  namespace: munk8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-consumer
+  template:
+    metadata:
+      labels:
+        app: go-consumer
+    spec:
+      containers:
+        - name: go-consumer
+          image: zot:5000/munk8s/go-consumer:1
+          env:
+            - name: VALKEY_ADDR
+              value: valkey:6379
+            - name: RABBITMQ_URL
+              value: amqp://guest:guest@rabbitmq:5672/
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

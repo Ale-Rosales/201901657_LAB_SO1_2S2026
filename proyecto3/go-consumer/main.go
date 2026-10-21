@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math/rand"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
@@ -66,8 +67,36 @@ func process(ctx context.Context, rdb *redis.Client, r report) error {
 		})
 		pipe.Expire(ctx, "ts:"+assigned, 24*time.Hour) // TTL anti-saturación
 	}
+
+	if c == assigned {
+		minute := time.Now().UTC().Format("15:04")
+		pipe.HSet(ctx, "tsmin:planes", minute, r.Planes)
+		pipe.HSet(ctx, "tsmin:ships", minute, r.Ships)
+		pipe.Expire(ctx, "tsmin:planes", 24*time.Hour)
+		pipe.Expire(ctx, "tsmin:ships", 24*time.Hour)
+	}
+
 	_, err := pipe.Exec(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+	if rand.Intn(200) == 0 {
+		for _, k := range []string{"planes", "ships"} {
+			m, err := rdb.HGetAll(ctx, "freq:"+k).Result()
+			if err != nil {
+				continue
+			}
+			best, bestN := "", int64(-1)
+			for v, n := range m {
+				cnt, _ := strconv.ParseInt(n, 10, 64)
+				if cnt > bestN {
+					best, bestN = v, cnt
+				}
+			}
+			rdb.Set(ctx, "mode:"+k, best, 0)
+		}
+	}
+	return nil
 }
 
 func connect(url string) *amqp.Connection {

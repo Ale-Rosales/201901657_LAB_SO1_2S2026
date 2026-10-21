@@ -1,9 +1,19 @@
+import json
+import os
 import random
 from datetime import datetime, timezone
 from locust import HttpUser, task, between
 
-COUNTRIES = ["USA", "RUS", "CHN", "ESP", "GTM"]
 CARNET = "201901657"
+CFG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
+
+# Config descargada desde Zot como OCI Artifact (oras pull).
+# Si no existe, se usan valores por defecto.
+try:
+    with open(CFG_PATH) as f:
+        CFG = json.load(f)
+except FileNotFoundError:
+    CFG = {"countries": ["USA", "RUS", "CHN", "ESP", "GTM"], "planes_max": 50, "ships_max": 30}
 
 
 class ReportUser(HttpUser):
@@ -12,9 +22,9 @@ class ReportUser(HttpUser):
     @task
     def send_report(self):
         payload = {
-            "country": random.choice(COUNTRIES),
-            "warplanes_in_air": random.randint(0, 50),
-            "warships_in_water": random.randint(0, 30),
+            "country": random.choice(CFG["countries"]),
+            "warplanes_in_air": random.randint(0, CFG["planes_max"]),
+            "warships_in_water": random.randint(0, CFG["ships_max"]),
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
         self.client.post(f"/grpc-{CARNET}", json=payload)

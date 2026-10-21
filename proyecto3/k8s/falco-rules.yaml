@@ -1,14 +1,13 @@
 customRules:
   munk8s-rules.yaml: |-
     - rule: Lectura de archivo sensible en pods munk8s
-      desc: Detecta apertura o lectura de /etc/shadow o /app/secretos en pods del namespace munk8s
+      desc: Detecta lectura de /etc/shadow o /app/secretos dentro de contenedores
       condition: >
-        evt.type in (open, openat, openat2) and evt.dir=<
-        and fd.name in (/etc/shadow, /app/secretos)
-        and k8s.ns.name = "munk8s"
+        open_read and container
+        and (fd.name = /etc/shadow or fd.name startswith /app/secretos)
       output: >
         ALERTA munk8s: lectura de archivo sensible
         (archivo=%fd.name proceso=%proc.name cmd=%proc.cmdline
-        pod=%k8s.pod.name ns=%k8s.ns.name usuario=%user.name)
+        pod=%k8s.pod.name ns=%k8s.ns.name contenedor=%container.name)
       priority: WARNING
       tags: [munk8s, filesystem]

@@ -17,4 +17,11 @@ resources:
   group: cache
   kind: ValkeyInstance
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: munk8s.io
+  group: cache
+  kind: GrafanaInstance
+  version: v1alpha1
 version: "3"

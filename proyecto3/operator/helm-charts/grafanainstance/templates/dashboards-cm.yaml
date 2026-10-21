@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboards
+data:
+  munk8s.json: |-
+{{ .Files.Get "dashboards/munk8s.json" | indent 4 }}

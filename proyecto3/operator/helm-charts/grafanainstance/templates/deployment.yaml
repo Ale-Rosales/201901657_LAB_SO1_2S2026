@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: grafana
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_INSTALL_PLUGINS
+              value: redis-datasource
+            - name: GF_SECURITY_ADMIN_USER
+              value: {{ .Values.adminUser | quote }}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: {{ .Values.adminPassword | quote }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboards-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: datasources
+          configMap:
+            name: {{ .Release.Name }}-datasource
+        - name: dashboards-provider
+          configMap:
+            name: {{ .Release.Name }}-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: {{ .Release.Name }}-dashboards

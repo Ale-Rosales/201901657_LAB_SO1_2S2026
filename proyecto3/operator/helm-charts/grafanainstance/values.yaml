@@ -1,0 +1,11 @@
+image: grafana/grafana:11.2.0
+valkeyHost: valkey:6379
+adminUser: admin
+adminPassword: admin
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 384Mi

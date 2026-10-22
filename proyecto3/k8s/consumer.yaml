@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: go-consumer
-          image: zot:5000/munk8s/go-consumer:1
+          image: zot:5000/munk8s/go-consumer:4
           env:
             - name: VALKEY_ADDR
               value: valkey:6379

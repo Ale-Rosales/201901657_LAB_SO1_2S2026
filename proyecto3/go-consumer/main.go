@@ -50,6 +50,8 @@ func process(ctx context.Context, rdb *redis.Client, r report) error {
 	pipe.Incr(ctx, "count:"+c)
 	pipe.ZIncrBy(ctx, "zset:planes", float64(r.Planes), c)
 	pipe.ZIncrBy(ctx, "zset:ships", float64(r.Ships), c)
+	pipe.HIncrBy(ctx, "top:planes", c, int64(r.Planes))
+	pipe.HIncrBy(ctx, "top:ships", c, int64(r.Ships))
 	pipe.HIncrBy(ctx, "freq:planes", p, 1)
 	pipe.HIncrBy(ctx, "freq:ships", s, 1)
 	maxScript.Eval(ctx, pipe, []string{"max:planes"}, r.Planes)

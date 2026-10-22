@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: zot:5000/munk8s/valkey-operator
-  newTag: "4"
+  newTag: "5"

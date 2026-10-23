@@ -63,11 +63,8 @@ nodes:
         protocol: TCP
 ```
 
-📸 **CAPTURA 3 — Nodo y pods del clúster.**
-```bash
-kubectl get nodes -o wide
-kubectl get pods -A
-```
+**Nodo y pods del clúster**<br>
+![Nodo y pods del clúster](images/Nodo%20y%20pods%20del%20clúster.png)
 
 ---
 
@@ -93,21 +90,17 @@ curl --cacert ~/zot/certs/zot.crt https://zot:5000/v2/_catalog
 
 Todo está automatizado en `k8s/zot/trust-kind.sh`, que debe ejecutarse **cada vez que se recrea el clúster**.
 
+**Catálogo de Zot en terminal**</br>
 ![Catálogo de Zot en terminal](images/Catálogo%20de%20Zot%20en%20terminal.png)
 
-📸 **CAPTURA 5 — Catálogo de Zot en el navegador (HTTPS).**
-Abre `https://zot:5000/v2/_catalog` (acepta el aviso del certificado autofirmado). La captura debe mostrar el candado/URL `https://`.
+**Catálogo de Zot en el navegador**</br>
 ![Catálogo de Zot en el navegador](images/Catálogo%20de%20Zot%20en%20el%20navegador%20(HTTPS).png)
 
-📸 **CAPTURA 6 — Contenedor de Zot corriendo y fuera del clúster.**
-```bash
-docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}'
-```
+**Contenedor de Zot corriendo y fuera del clúster**</br>
+![Contenedor de Zot corriendo y fuera del clúster](images/Contenedor%20de%20Zot%20corriendo%20y%20fuera%20del%20clúster.png)
 
-📸 **CAPTURA 7 — Un pod descargando su imagen desde Zot.**
-```bash
-kubectl get pods -n munk8s -o custom-columns=POD:.metadata.name,IMAGEN:.spec.containers[*].image
-```
+**Un pod descargando su imagen desde Zot**</br>
+![Un pod descargando su imagen desde Zot](images/Un%20pod%20descargando%20su%20imagen%20desde%20Zot.png)
 
 ---
 
@@ -136,25 +129,14 @@ rules:
 
 Camino de red: `localhost:8080` (host) → NodePort 30080 → `targetPort 10080` de Envoy → HTTPRoute → `rust-api`.
 
-📸 **CAPTURA 8 — Gateway, HTTPRoute y GatewayClass.**
-```bash
-kubectl get gatewayclass
-kubectl get gateway,httproute -n munk8s
-kubectl get svc -n envoy-gateway-system
-```
+**Gateway, HTTPRoute y GatewayClass**</br>
+![Gateway, HTTPRoute y GatewayClass](images/Gateway,%20HTTPRoute%20y%20GatewayClass.png)
 
-📸 **CAPTURA 9 — Estado aceptado de la ruta (`Accepted: True`, `ResolvedRefs: True`).**
-```bash
-kubectl describe httproute grpc-route -n munk8s | tail -25
-```
+**Estado aceptado de la ruta**</br>
+![Estado aceptado de la ruta](images/Estado%20aceptado%20de%20la%20ruta%20.png)
 
-📸 **CAPTURA 10 — Petición de prueba a través del Gateway.**
-```bash
-curl -i -X POST localhost:8080/grpc-201901657 -H 'Content-Type: application/json' \
-  -d '{"country":"ESP","warplanes_in_air":42,"warships_in_water":14,"timestamp":"2026-03-12T20:15:30Z"}'
-```
-Debe responder `200` con `{"status":"ok"}`.
-
+**Petición de prueba a través del Gateway**</br>
+![Petición de prueba a través del Gateway](images/Petición%20de%20prueba%20a%20través%20del%20Gateway.png)
 ---
 
 ## 5. API REST en Rust y HPA
@@ -183,26 +165,14 @@ spec:
         target: { type: Utilization, averageUtilization: 30 }
 ```
 
-### Resultado observado
+**HPA y Deployments**</br>
+![HPA y Deployments](images/%20HPA%20y%20Deployments.png)
 
-Durante la primera prueba con Locust el HPA subió la CPU a **109 %** (objetivo 30 %) y escaló de **1 a 3 réplicas**; con 3 réplicas se estabilizó alrededor de 38–40 %, ya en el máximo permitido. Al terminar la carga, y tras la ventana de estabilización (~5 min), vuelve a 1 réplica.
+**HPA escalando bajo carga**</br>
+![HPA escalando bajo carga](images/HPA%20escalando%20bajo%20carga%20.png)
 
-📸 **CAPTURA 11 — HPA y Deployments.**
-```bash
-kubectl get hpa,deployments -n munk8s
-```
-
-📸 **CAPTURA 12 — HPA escalando bajo carga** (necesita Locust corriendo; ver §15).
-En una terminal:
-```bash
-kubectl get hpa -n munk8s -w
-```
-En otra, lanza Locust. Captura cuando `REPLICAS` pase de 1 a 3.
-
-📸 **CAPTURA 13 — Pods de Rust escalados.**
-```bash
-kubectl get pods -n munk8s -l app=rust-api
-```
+**Pods de Rust escalados**</br>
+![Pods de Rust escalados](images/Pods%20de%20Rust%20escalados.png)
 
 ---
 
@@ -241,37 +211,22 @@ service WarReportService { rpc SendReport (WarReportRequest) returns (WarReportR
 
 ### Comunicación REST/gRPC
 
-📸 **CAPTURA 14 — Logs de los tres servicios.**
-```bash
-kubectl logs -n munk8s -l app=rust-api --tail=10
-kubectl logs -n munk8s -l app=go-client --tail=10
-kubectl logs -n munk8s -l app=go-server --tail=10
-```
+**Logs de los tres servicios**</br>
+![Logs de los tres servicios](images/Logs%20de%20los%20tres%20servicios.png)
 
-📸 **CAPTURA 15 — Archivo `.proto` y código generado.**
-```bash
-ls proto
-cat proto/war.proto
-```
+**Archivo .proto**</br>
+![Archivo proto](images/Archivo%20.proto.png)
 
 ---
 
 ## 7. RabbitMQ
 
-Con la carga de Locust sin consumer, la cola llegó a **47 750 mensajes** sin que RabbitMQ se reiniciara; al desplegar el consumer se vació en pocos minutos.
-
-📸 **CAPTURA 16 — Pods y cola.**
-```bash
-kubectl get pods -n munk8s
-kubectl exec -n munk8s deploy/rabbitmq -- rabbitmqctl list_queues
-```
-
-📸 **CAPTURA 17 — Cola creciendo bajo carga y luego vaciándose.**
-Con Locust corriendo, repite el `list_queues` dos o tres veces; después detén Locust y repítelo hasta ver `war_reports 0`.
+**Pods y cola**</br>
+![Pods y cola](images/Pods%20y%20cola.png)
 
 ---
 
-## 8. Consumer y modelo de datos en Valkey
+## 8. Modelo de datos en Valkey
 
 ### Modelo de datos
 
@@ -287,21 +242,8 @@ Con Locust corriendo, repite el `list_queues` dos o tres veces; después detén 
 | `tsmin:planes`, `tsmin:ships` | hash | `HH:MM` → último valor de ESP en ese minuto (TTL 24 h) | Evolución temporal |
 | `assigned:country` | string | `ESP` (se crea a mano, ver §16) | País asignado |
 
-**Expiración de datos:** las series de tiempo tienen TTL de 24 h y el stream un tope de longitud. Valkey se ejecuta con `maxmemory 128mb` y política `allkeys-lru` para evitar saturar la memoria.
-
-📸 **CAPTURA 18 — Consumer iniciado.**
-```bash
-kubectl logs -n munk8s deploy/go-consumer --tail=10
-```
-
-📸 **CAPTURA 19 — Datos en Valkey.**
-```bash
-kubectl exec -n munk8s valkey-0 -- valkey-cli dbsize
-kubectl exec -n munk8s valkey-0 -- valkey-cli mget max:planes min:planes max:ships min:ships assigned:country mode:planes mode:ships count:ESP
-kubectl exec -n munk8s valkey-0 -- valkey-cli hgetall top:planes
-kubectl exec -n munk8s valkey-0 -- valkey-cli hgetall top:ships
-kubectl exec -n munk8s valkey-0 -- valkey-cli xlen ts:ESP
-```
+**Datos en Valkey**</br>
+![Datos en Valkey](images/Datos%20en%20Valkey.png)
 
 ---
 
@@ -375,43 +317,14 @@ El `ClusterRole` del Operator concede permisos sobre `valkeyinstances` y `grafan
 
 ### Persistencia comprobada
 
-📸 **CAPTURA 20 — Operator corriendo.**
-```bash
-kubectl get pods -n operator-system
-kubectl get crd | grep munk8s
-```
+**Operator corriendo**<br>
+![Operator corriendo](images/Operator%20corriendo.png)
 
-📸 **CAPTURA 21 — Custom Resources y recursos que el Operator creó.**
-```bash
-kubectl get valkeyinstance,grafanainstance -n munk8s
-kubectl get statefulset,deployment,svc,pvc -n munk8s | grep -E "valkey|grafana"
-```
+**Custom Resources y recursos que el Operator creó**</br>
+![Custom Resources y recursos que el Operator cre](images/Custom%20Resources%20y%20recursos%20que%20el%20Operator%20creó.png)
 
-📸 **CAPTURA 22 — Reconciliación en acción** (el Operator recrea lo que se borra).
-```bash
-kubectl delete svc valkey -n munk8s
-sleep 60
-kubectl get svc valkey -n munk8s
-kubectl logs -n operator-system deploy/operator-controller-manager --tail=15
-```
-
-📸 **CAPTURA 23 — Persistencia de Valkey antes y después de borrar el pod.**
-```bash
-kubectl exec -n munk8s valkey-0 -- valkey-cli dbsize
-kubectl exec -n munk8s valkey-0 -- valkey-cli zrevrange zset:planes 0 4 withscores
-kubectl delete pod valkey-0 -n munk8s
-sleep 45
-kubectl get pod valkey-0 -n munk8s
-kubectl exec -n munk8s valkey-0 -- valkey-cli dbsize
-kubectl exec -n munk8s valkey-0 -- valkey-cli zrevrange zset:planes 0 4 withscores
-kubectl get pvc -n munk8s
-```
-
-📸 **CAPTURA 24 — Archivos del Operator.**
-```bash
-cat operator/watches.yaml
-ls operator/helm-charts/valkeyinstance/templates operator/helm-charts/grafanainstance/templates
-```
+**Archivos del Operator**</br>
+![Archivos del Operator](images/Archivos%20del%20Operator.png)
 
 ---
 
@@ -435,17 +348,11 @@ URL: `http://localhost:8443` (usuario `admin`, contraseña `admin`).
 | Evolución temporal (Barcos) | Bar gauge | `HGETALL tsmin:ships` |
 
 
-📸 **CAPTURA 25 — Dashboard completo con datos** (Locust corriendo, rango *Last 15 minutes*).
-Abre `http://localhost:8443/d/munk8s`.
+**Dashboard completo con datos**</br>
+![Dashboard completo con datos](images/Dashboard%20completo%20con%20datos.png)
 
-📸 **CAPTURA 26 — Datasource Valkey funcionando.**
-`http://localhost:8443/connections/datasources` → Valkey → **Save & test**.
-
-📸 **CAPTURA 27 — Pod de Grafana creado por el Operator.**
-```bash
-kubectl get pods -n munk8s | grep grafana
-kubectl get grafanainstance -n munk8s
-```
+**Pod de Grafana creado por el Operator**</br>
+![Pod de Grafana creado por el Operator](images/Pod%20de%20Grafana%20creado%20por%20el%20Operator.png)
 
 ---
 
@@ -474,26 +381,6 @@ cat locust/config.json
 
 # Usarlo en Locust
 cp /tmp/oras-test/locust/config.json ~/Escritorio/201901657_LAB_SO1_2S2026/proyecto3/locust/config.json
-```
-
-📸 **CAPTURA 28 — `oras push`.**
-```bash
-cd ~/Escritorio/201901657_LAB_SO1_2S2026/proyecto3
-oras push --ca-file ~/zot/certs/zot.crt zot:5000/munk8s/config:1 locust/config.json:application/json
-```
-
-📸 **CAPTURA 29 — `oras pull` y contenido.**
-```bash
-rm -rf /tmp/oras-test && mkdir -p /tmp/oras-test && cd /tmp/oras-test
-oras pull --ca-file ~/zot/certs/zot.crt zot:5000/munk8s/config:1
-ls -R && cat locust/config.json
-cd ~/Escritorio/201901657_LAB_SO1_2S2026/proyecto3
-```
-
-📸 **CAPTURA 30 — Locust usando el archivo** (prueba corta con 0 fallos).
-```bash
-source ~/locust-env/bin/activate
-locust -f locust/locustfile.py --host http://localhost:8080 --headless -u 10 -r 5 -t 10s
 ```
 
 ---
@@ -541,32 +428,15 @@ Alerta obtenida:
 03:45:00.317793639: Warning ALERTA munk8s: lectura de archivo sensible (archivo=/etc/shadow proceso=cat cmd=cat /etc/shadow pod=rust-api-666ff874c9-5nwgx ns=munk8s contenedor=rust-api)
 ```
 
-📸 **CAPTURA 31 — Falco corriendo.**
-```bash
-kubectl get pods -n falco
-```
+**Falco corriendo**</br>
+![Falco corriendo](images/Falco%20corriendo.png)
 
-📸 **CAPTURA 32 — Regla cargada dentro del pod de Falco.**
-```bash
-kubectl exec -n falco ds/falco -c falco -- cat /etc/falco/rules.d/munk8s-rules.yaml
-```
+**Regla cargada dentro del pod de Falco**</br>
+![Regla cargada dentro del pod de Falco](images/Regla%20cargada%20dentro%20del%20pod%20de%20Falco.png)
 
-📸 **CAPTURA 33 — Alerta de la regla personalizada** (la captura clave).
-Terminal 1:
-```bash
-kubectl logs -n falco -l app.kubernetes.io/name=falco -c falco -f | grep "ALERTA munk8s"
-```
-Terminal 2:
-```bash
-kubectl exec -n munk8s deploy/rust-api -- cat /etc/shadow > /dev/null
-```
+**Alerta de la regla personalizada**</br>
+![Alerta de la regla personalizada](images/Alerta%20de%20la%20regla%20personalizada.png)
 
-📸 **CAPTURA 34 — Prueba con `/app/secretos`** (ruta del enunciado, solo la cubre la regla propia).
-```bash
-kubectl exec -n munk8s deploy/rust-api -- sh -c 'mkdir -p /app && echo clave > /app/secretos && cat /app/secretos'
-sleep 5
-kubectl logs -n falco -l app.kubernetes.io/name=falco -c falco --tail=100 | grep "ALERTA munk8s"
-```
 
 ---
 
@@ -583,7 +453,7 @@ kubectl logs -n falco -l app.kubernetes.io/name=falco -c falco --tail=100 | grep
 | Rust | Escaló de 1 a **3 réplicas** (CPU 109 % → ~38–40 %) |
 | Cola RabbitMQ al final | 47 750 mensajes (aún sin consumer) |
 
-### Prueba 2: `go-server` con 1 réplica vs 2 réplicas
+### Prueba 2: con 1 réplica vs 2 réplicas
 
 Misma carga en ambas: `locust --headless -u 50 -r 10 -t 2m`.
 
@@ -614,40 +484,12 @@ Misma carga en ambas: `locust --headless -u 50 -r 10 -t 2m`.
 3. **El cuello de botella es el equipo**, no `go-server`. Locust, el clúster, RabbitMQ, el consumer, Grafana y Falco comparten 4 núcleos, y Locust avisó "CPU usage was too high" en ambas pruebas.
 4. **Cómo mejorarlo:** Service *headless* para `go-server` con balanceo del lado del cliente (`round_robin`) o un proxy L7 que balancee por petición; y ejecutar Locust en otra máquina.
 
-### Evidencias
+</br>
 
-Los CSV de Locust están en `docs/pruebas/` (`prueba_1replica_*.csv`, `prueba_2replicas_*.csv`).
+**Interfaz web de Locust**</br>
+![Locust_1](images/Interfaz%20web%20de%20Locust.png)
 
-📸 **CAPTURA 35 — Interfaz web de Locust** (resumen de estadísticas y gráficas).
-```bash
-source ~/locust-env/bin/activate
-locust -f locust/locustfile.py --host http://localhost:8080
-```
-Abre `http://localhost:8089`, 20 usuarios, spawn 5, y captura tras 1–2 min.
-
-📸 **CAPTURA 36 — Prueba con 1 réplica** (salida de terminal con la tabla final).
-```bash
-kubectl scale deployment go-server -n munk8s --replicas=1
-kubectl get pods -n munk8s | grep go-server
-locust -f locust/locustfile.py --host http://localhost:8080 --headless -u 50 -r 10 -t 2m --csv=prueba_1replica
-```
-
-📸 **CAPTURA 37 — Prueba con 2 réplicas** (salida de terminal con la tabla final).
-```bash
-kubectl scale deployment go-server -n munk8s --replicas=2
-kubectl get pods -n munk8s | grep go-server
-locust -f locust/locustfile.py --host http://localhost:8080 --headless -u 50 -r 10 -t 2m --csv=prueba_2replicas
-```
-
-📸 **CAPTURA 38 — Reparto de CPU entre réplicas** (ejecútalo mientras corre la prueba).
-```bash
-kubectl top pods -n munk8s | grep -E "go-server|rust-api"
-```
-
-Al terminar, deja el sistema en su estado normal:
-```bash
-kubectl scale deployment go-server -n munk8s --replicas=1
-```
+![Locust_2](images/Locust.png)
 
 ---
 
@@ -690,16 +532,14 @@ echo "127.0.0.1 zot" | sudo tee -a /etc/hosts
 sudo mkdir -p /etc/docker/certs.d/zot:5000
 sudo cp ~/zot/certs/zot.crt /etc/docker/certs.d/zot:5000/ca.crt
 
-./k8s/zot/trust-kind.sh        # el nodo de kind confía en Zot
+./k8s/zot/trust-kind.sh
 ```
 
 ### 14.4 Construir y publicar imágenes
 
 ```bash
-# Rust
 docker build -t zot:5000/munk8s/rust-api:2 rust-api/ && docker push zot:5000/munk8s/rust-api:2
 
-# Go (contexto = raíz de proyecto3)
 for s in go-client go-server go-consumer; do
   docker build -f $s/Dockerfile -t zot:5000/munk8s/$s:1 .
   docker push zot:5000/munk8s/$s:1
@@ -730,7 +570,7 @@ cd ..
 
 kubectl apply -f k8s/valkey-instance.yaml
 kubectl wait --for=condition=Ready pod/valkey-0 -n munk8s --timeout=180s
-kubectl exec -n munk8s valkey-0 -- valkey-cli set assigned:country ESP   # paso de inicialización
+kubectl exec -n munk8s valkey-0 -- valkey-cli set assigned:country ESP 
 
 kubectl apply -f k8s/consumer.yaml
 kubectl apply -f k8s/grafana-instance.yaml
@@ -753,9 +593,9 @@ locust -f locust/locustfile.py --host http://localhost:8080
 ### 14.9 Después de reiniciar el equipo
 
 ```bash
-docker ps                           # zot y munk8s-control-plane deben estar "Up"
+docker ps                           
 kubectl config use-context kind-munk8s
-kubectl get pods -A                 # esperar 1–2 min a que todo vuelva a Running
+kubectl get pods -A                 
 ```
 
 Si Zot no arrancó: `docker start zot`. Si Envoy responde `500` al inicio, esperar unos segundos.
@@ -767,7 +607,3 @@ curl -i -X POST localhost:8080/grpc-201901657 -H 'Content-Type: application/json
   -d '{"country":"ESP","warplanes_in_air":42,"warships_in_water":14,"timestamp":"2026-03-12T20:15:30Z"}'
 kubectl exec -n munk8s valkey-0 -- valkey-cli get count:ESP
 ```
-
-📸 **CAPTURA 39 — Verificación de punta a punta** (el `curl` con `200` y el contador de ESP subiendo).
-
----

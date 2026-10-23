@@ -21,9 +21,9 @@ type report struct {
 	Time    string `json:"timestamp"`
 }
 
-const assigned = "ESP" // carnet termina en 7
+const assigned = "ESP" 
 
-// Scripts Lua: actualizan max/min de forma atómica (seguro con varias réplicas).
+
 var maxScript = redis.NewScript(`
 local cur = redis.call('GET', KEYS[1])
 if (not cur) or (tonumber(ARGV[1]) > tonumber(cur)) then redis.call('SET', KEYS[1], ARGV[1]) end
@@ -59,7 +59,7 @@ func process(ctx context.Context, rdb *redis.Client, r report) error {
 	maxScript.Eval(ctx, pipe, []string{"max:ships"}, r.Ships)
 	minScript.Eval(ctx, pipe, []string{"min:ships"}, r.Ships)
 
-	// Serie temporal del país asignado: un stream (XRANGE lo lee Grafana).
+	
 	if c == assigned {
 		pipe.XAdd(ctx, &redis.XAddArgs{
 			Stream: "ts:" + assigned,
@@ -67,7 +67,7 @@ func process(ctx context.Context, rdb *redis.Client, r report) error {
 			Approx: true,
 			Values: map[string]interface{}{"planes": r.Planes, "ships": r.Ships},
 		})
-		pipe.Expire(ctx, "ts:"+assigned, 24*time.Hour) // TTL anti-saturación
+		pipe.Expire(ctx, "ts:"+assigned, 24*time.Hour) 
 	}
 
 	if c == assigned {
@@ -141,7 +141,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Pool de workers (concurrencia): varias goroutines procesan en paralelo.
+	
 	workers := 4
 	log.Printf("consumer iniciado con %d workers", workers)
 	done := make(chan struct{})
@@ -150,12 +150,12 @@ func main() {
 			for d := range msgs {
 				var r report
 				if err := json.Unmarshal(d.Body, &r); err != nil {
-					d.Nack(false, false) // mensaje inválido: descartar
+					d.Nack(false, false) 
 					continue
 				}
 				if err := process(ctx, rdb, r); err != nil {
 					log.Println("error valkey:", err)
-					d.Nack(false, true) // reintentar
+					d.Nack(false, true) 
 					time.Sleep(500 * time.Millisecond)
 					continue
 				}

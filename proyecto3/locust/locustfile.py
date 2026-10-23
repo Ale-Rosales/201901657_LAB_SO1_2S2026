@@ -7,8 +7,7 @@ from locust import HttpUser, task, between
 CARNET = "201901657"
 CFG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
 
-# Config descargada desde Zot como OCI Artifact (oras pull).
-# Si no existe, se usan valores por defecto.
+
 try:
     with open(CFG_PATH) as f:
         CFG = json.load(f)

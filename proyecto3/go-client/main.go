@@ -38,7 +38,7 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	// Cada petición HTTP corre en su propia goroutine (concurrencia).
+
 	http.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
 		var in report
 		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
